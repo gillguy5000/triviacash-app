@@ -4,12 +4,92 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Trivia Clash Live</title>
-  <link rel="stylesheet" href="styles.css" />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --accent-purple: #8b5cf6;
+      --accent-pink: #ec4899;
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+      --border-color: #334155;
+    }
+
+    /* Color Theme Variants */
+    body.theme-neon { --bg-color: #050515; --card-bg: #0d0d2b; --accent-purple: #00f0ff; --accent-pink: #ff007f; }
+    body.theme-emerald { --bg-color: #022c22; --card-bg: #064e3b; --accent-purple: #10b981; --accent-pink: #f59e0b; }
+    body.theme-midnight { --bg-color: #090d16; --card-bg: #111827; --accent-purple: #3b82f6; --accent-pink: #6366f1; }
+    body.theme-sunset { --bg-color: #2e1065; --card-bg: #4c1d95; --accent-purple: #f43f5e; --accent-pink: #fb923c; }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-main); display: flex; justify-content: center; min-height: 100vh; padding: 12px; transition: background 0.3s ease; }
+    .app-container { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 14px; padding-bottom: 24px; }
+    
+    /* Header & Bar */
+    .header { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 12px 16px; border-radius: 16px; border: 1px solid var(--border-color); }
+    .logo { font-size: 1.2rem; font-weight: 800; color: var(--accent-purple); }
+    .logo span { color: var(--accent-pink); }
+    .wallet-bar { display: flex; align-items: center; gap: 6px; }
+    .stat-pill { background: rgba(255, 255, 255, 0.08); padding: 6px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+    
+    /* Theme Picker Bar */
+    .theme-bar { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 8px 12px; border-radius: 12px; font-size: 0.8rem; }
+    .theme-select { background: #0f172a; color: white; border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; }
+
+    /* Account Profile Bar */
+    .user-bar { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 10px 14px; border-radius: 12px; border-left: 4px solid var(--accent-purple); }
+    .user-info { font-size: 0.85rem; }
+    
+    /* Buttons */
+    .btn { border: none; border-radius: 10px; padding: 8px 14px; font-weight: 700; cursor: pointer; transition: transform 0.1s ease; font-size: 0.85rem; }
+    .btn:active { transform: scale(0.96); }
+    .btn-shop { background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)); color: white; }
+    .btn-primary { background: var(--accent-purple); color: white; width: 100%; }
+    .btn-secondary { background: #334155; color: white; width: 100%; }
+    .btn-buy { background: var(--accent-pink); color: white; }
+
+    /* Cards */
+    .card { background: var(--card-bg); padding: 14px; border-radius: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 10px; }
+    .card-title { font-size: 0.95rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
+
+    /* 12 Sessions Subject Selector Grid */
+    .subjects-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; max-height: 180px; overflow-y: auto; padding-right: 4px; }
+    .subject-item { background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-color); padding: 8px; border-radius: 10px; cursor: pointer; text-align: left; transition: all 0.2s; }
+    .subject-item.active { border-color: var(--accent-purple); background: rgba(139, 92, 246, 0.15); }
+    .subject-item h5 { font-size: 0.8rem; color: var(--text-main); }
+    .subject-item p { font-size: 0.7rem; color: var(--text-sub); }
+
+    /* Tournaments Grid */
+    .tourney-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .tourney-card { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); padding: 8px; border-radius: 10px; text-align: center; font-size: 0.75rem; }
+    .tourney-card h4 { font-size: 0.8rem; color: var(--accent-purple); margin-bottom: 2px; }
+
+    /* Leaderboards */
+    .tab-bar { display: flex; gap: 4px; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 10px; }
+    .tab-btn { flex: 1; border: none; background: transparent; color: var(--text-sub); padding: 6px; font-size: 0.75rem; font-weight: 700; border-radius: 8px; cursor: pointer; }
+    .tab-btn.active { background: var(--accent-purple); color: white; }
+    .leader-list { display: flex; flex-direction: column; gap: 6px; font-size: 0.8rem; }
+    .leader-item { display: flex; justify-content: space-between; padding: 6px 10px; background: rgba(255,255,255,0.03); border-radius: 8px; }
+
+    /* Quiz Panel */
+    .quiz-panel { text-align: center; }
+    .timer-ring { background: var(--accent-pink); width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; }
+    .options-grid { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 10px; }
+    .option-btn { padding: 10px; background: #334155; border: 1px solid #475569; border-radius: 8px; color: white; text-align: left; cursor: pointer; font-size: 0.85rem; }
+
+    /* Modals */
+    .modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 100; }
+    .modal-content { background: var(--card-bg); padding: 18px; border-radius: 18px; width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 12px; border: 1px solid var(--border-color); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; }
+    .close-btn { background: none; border: none; color: white; font-size: 1.4rem; cursor: pointer; }
+    .hidden { display: none !important; }
+  </style>
 </head>
-<body>
+<body class="theme-dark">
   <div class="app-container">
-    <!-- Header -->
+    
+    <!-- Top Header -->
     <header class="header">
       <div class="logo">TRIVIA<span>CLASH</span></div>
       <div class="wallet-bar">
@@ -19,101 +99,380 @@
       </div>
     </header>
 
-    <!-- Daily Session Schedule Banner -->
-    <section class="session-card">
-      <div class="session-info">
-        <h2>Next Live Session</h2>
-        <p>6 Daily Sessions: Every 4 Hours</p>
+    <!-- Theme Switcher Bar -->
+    <div class="theme-bar">
+      <span>🎨 Background Theme:</span>
+      <select id="theme-selector" class="theme-select">
+        <option value="theme-dark">Dark Mode</option>
+        <option value="theme-neon">Cyber Neon</option>
+        <option value="theme-emerald">Emerald Gold</option>
+        <option value="theme-midnight">Midnight Blue</option>
+        <option value="theme-sunset">Sunset Pink</option>
+      </select>
+    </div>
+
+    <!-- Account Profile Panel -->
+    <div class="user-bar">
+      <div class="user-info">
+        <strong id="user-display-name">Player_Guest</strong>
+        <p id="user-activity-tag" style="font-size:0.75rem; color:var(--text-sub);">Matches Played: 0 | Level 1</p>
       </div>
-      <div class="countdown-badge" id="countdown">00:00:00</div>
+      <button id="account-btn" class="btn btn-secondary" style="width:auto;">Account</button>
+    </div>
+
+    <!-- 12 Daily Subject Sessions Card -->
+    <section class="card">
+      <div class="card-title">
+        <span>📅 12 Daily Subject Sessions</span>
+        <span id="session-clock" style="color:var(--accent-pink); font-family:monospace;">00:00:00</span>
+      </div>
+      <p style="font-size:0.75rem; color:var(--text-sub);">Select a topic to enter its scheduled daily session:</p>
+      <div class="subjects-grid" id="subjects-container"></div>
     </section>
 
-    <!-- Weekly Championship Card -->
-    <section class="tournament-card">
-      <div class="tournament-header">
-        <h3>🏆 Weekly Championship</h3>
-        <span class="badge" id="vip-status">Locked</span>
-      </div>
-      <p id="tournament-desc">Earn points in 10 daily sessions for free entry, or buy a weekly direct pass.</p>
-      <div class="tournament-action-bar">
-        <button id="buy-pass-btn" class="btn btn-primary btn-buy" data-package="weekly_pass">Buy Weekly Pass (KSh 300)</button>
+    <!-- Tournaments Hub Card -->
+    <section class="card">
+      <div class="card-title">🏆 Tournament Arena</div>
+      <div class="tourney-grid">
+        <div class="tourney-card">
+          <h4>Weekly</h4>
+          <p>Pass: KSh 300</p>
+          <button class="btn btn-buy btn-purchase" data-package="weekly_pass" style="font-size:0.7rem; margin-top:4px;">Buy</button>
+        </div>
+        <div class="tourney-card">
+          <h4>5-Month</h4>
+          <p>Pass: KSh 1200</p>
+          <button class="btn btn-buy btn-purchase" data-package="five_month_pass" style="font-size:0.7rem; margin-top:4px;">Buy</button>
+        </div>
+        <div class="tourney-card">
+          <h4>Yearly</h4>
+          <p>Pass: KSh 2500</p>
+          <button class="btn btn-buy btn-purchase" data-package="yearly_pass" style="font-size:0.7rem; margin-top:4px;">Buy</button>
+        </div>
       </div>
     </section>
 
-    <!-- Main Quiz Container -->
-    <main class="quiz-container">
-      <!-- Locked / Practice Screen -->
-      <div id="locked-screen" class="view-panel">
-        <div class="lock-icon">🔒</div>
-        <h3>Session Locked</h3>
-        <p>Wait for the next live round or practice your skills now!</p>
-        <button id="start-practice-btn" class="btn btn-secondary">Play Practice Mode</button>
+    <!-- Multi-Level Leaderboards -->
+    <section class="card">
+      <div class="card-title">📊 Leaderboards</div>
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="county">County</button>
+        <button class="tab-btn" data-tab="region">Region</button>
+        <button class="tab-btn" data-tab="national">National</button>
+        <button class="tab-btn" data-tab="world">World</button>
+      </div>
+      <div class="leader-list" id="leaderboard-content"></div>
+    </section>
+
+    <!-- Community Donation Card -->
+    <section class="card" style="border-color: var(--accent-pink);">
+      <div class="card-title">❤️ Support Trivia Clash</div>
+      <p style="font-size:0.75rem; color:var(--text-sub);">Fund website hosting and tournament prize pools via M-Pesa!</p>
+      <div style="display:flex; gap:8px; margin-top:4px;">
+        <button class="btn btn-shop btn-purchase" data-package="donation_supporter" style="flex:1;">Donate KSh 250</button>
+        <button id="custom-donate-btn" class="btn btn-secondary" style="flex:1;">Custom</button>
+      </div>
+    </section>
+
+    <!-- Game View Panel -->
+    <section class="card quiz-panel">
+      <div id="locked-view">
+        <h3>🎮 Practice & Play</h3>
+        <p style="font-size:0.8rem; color:var(--text-sub); margin:6px 0;">Test your trivia knowledge or qualify for free tournament tickets!</p>
+        <button id="start-quiz-btn" class="btn btn-primary">Start Quiz Match</button>
       </div>
 
-      <!-- Active Game View -->
-      <div id="quiz-screen" class="view-panel hidden">
-        <div class="quiz-header">
-          <span id="question-number">Question 1/3</span>
-          <div class="timer-ring" id="question-timer">15</div>
+      <div id="quiz-view" class="hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span id="q-number" style="font-size:0.8rem;">Question 1/3</span>
+          <div class="timer-ring" id="q-timer">15</div>
         </div>
-
-        <h3 id="question-text">Loading Question...</h3>
-
-        <div class="hints-bar">
-          <button class="hint-btn" id="hint-5050">50/50 (🪙 20)</button>
-          <button class="hint-btn" id="hint-time">+10s (🪙 15)</button>
-        </div>
-
-        <div class="options-grid" id="options-container"></div>
+        <h4 id="q-text" style="margin:12px 0;">Loading...</h4>
+        <div class="options-grid" id="options-box"></div>
       </div>
 
-      <!-- Results View -->
-      <div id="result-screen" class="view-panel hidden">
-        <h2>Session Finished!</h2>
-        <p id="result-msg">Score: 0/3</p>
-        <div class="reward-box">
-          <span>Prize Earned:</span>
-          <h1 id="result-reward">+$0.00</h1>
-        </div>
-        <button id="back-home-btn" class="btn btn-primary">Return to Lobby</button>
+      <div id="result-view" class="hidden">
+        <h3>Match Finished!</h3>
+        <p id="result-score" style="font-size:0.9rem; margin:8px 0;">Score: 0/3</p>
+        <button id="return-btn" class="btn btn-primary">Back to Lobby</button>
       </div>
-    </main>
+    </section>
 
-    <!-- M-Pesa Coin Store Modal -->
-    <div id="shop-modal" class="modal hidden">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>Coin Store</h3>
-          <button id="close-shop-btn" class="close-btn">&times;</button>
+  </div>
+
+  <!-- Store Modal -->
+  <div id="shop-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>🪙 Coin Store</h3>
+        <button class="close-btn" id="close-shop-btn">&times;</button>
+      </div>
+      <p style="font-size:0.8rem; color:var(--text-sub);">Select a coin pack to trigger an instant M-Pesa STK push:</p>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.05); padding:10px; border-radius:10px;">
+          <div><strong>Starter Pack</strong><br><small style="color:var(--text-sub);">🪙 50 Game Coins</small></div>
+          <button class="btn btn-buy btn-purchase" data-package="starter">KSh 200</button>
         </div>
-        <p>Select a coin pack to pay instantly via Safaricom M-Pesa STK Push.</p>
-        <div class="shop-grid">
-          <div class="shop-item">
-            <div>
-              <h4>Starter Pack</h4>
-              <p>🪙 50 Game Coins</p>
-            </div>
-            <button class="btn btn-buy" data-package="starter">KSh 200</button>
-          </div>
-          <div class="shop-item">
-            <div>
-              <h4>Pro Pack</h4>
-              <p>🪙 150 Game Coins</p>
-            </div>
-            <button class="btn btn-buy" data-package="pro">KSh 500</button>
-          </div>
-          <div class="shop-item">
-            <div>
-              <h4>Champion Pack</h4>
-              <p>🪙 500 Game Coins</p>
-            </div>
-            <button class="btn btn-buy" data-package="champion">KSh 1300</button>
-          </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.05); padding:10px; border-radius:10px;">
+          <div><strong>Pro Pack</strong><br><small style="color:var(--text-sub);">🪙 150 Game Coins</small></div>
+          <button class="btn btn-buy btn-purchase" data-package="pro">KSh 500</button>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.05); padding:10px; border-radius:10px;">
+          <div><strong>Champion Pack</strong><br><small style="color:var(--text-sub);">🪙 500 Game Coins</small></div>
+          <button class="btn btn-buy btn-purchase" data-package="champion">KSh 1300</button>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <!-- Account Modal -->
+  <div id="account-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>👤 User Profile</h3>
+        <button class="close-btn" id="close-account-btn">&times;</button>
+      </div>
+      <input type="text" id="username-input" placeholder="Enter Username..." style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:#0f172a; color:white;" />
+      <select id="county-input" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:#0f172a; color:white;">
+        <option value="Nairobi">Nairobi County</option>
+        <option value="Mombasa">Mombasa County</option>
+        <option value="Kisumu">Kisumu County</option>
+        <option value="Nakuru">Nakuru County</option>
+        <option value="Uasin Gishu">Uasin Gishu County</option>
+      </select>
+      <button id="save-account-btn" class="btn btn-primary">Save Profile</button>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      cash: 0.0,
+      coins: 50,
+      username: localStorage.getItem('tc_user') || 'Player_Guest',
+      county: localStorage.getItem('tc_county') || 'Nairobi',
+      matchesPlayed: parseInt(localStorage.getItem('tc_matches') || '0', 10),
+      sessionTimes: [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22],
+      subjects: [
+        { name: "Science & Tech", time: "00:00" }, { name: "World History", time: "02:00" },
+        { name: "African Geography", time: "04:00" }, { name: "Sports Trivia", time: "06:00" },
+        { name: "Pop Culture", time: "08:00" }, { name: "Literature", time: "10:00" },
+        { name: "Mathematics", time: "12:00" }, { name: "Movies & Film", time: "14:00" },
+        { name: "General Knowledge", time: "16:00" }, { name: "Nature & Animals", time: "18:00" },
+        { name: "Music & Art", time: "20:00" }, { name: "World Politics", time: "22:00" }
+      ],
+      questions: [
+        { q: "What is the capital city of Kenya?", options: ["Mombasa", "Kisumu", "Nairobi", "Nakuru"], answer: 2 },
+        { q: "Which planet is known as the Red Planet?", options: ["Venus", "Mars", "Jupiter", "Saturn"], answer: 1 },
+        { q: "What is the chemical symbol for Oxygen?", options: ["O", "Ox", "Og", "Au"], answer: 0 }
+      ],
+      currentQ: 0,
+      score: 0,
+      qTimer: 15,
+      timerInterval: null
+    };
+
+    const leaderboards = {
+      county: [{ name: "Alex_Nbi", score: "420 pts" }, { name: "Mercy_Ksm", score: "380 pts" }, { name: "Brian_Msa", score: "310 pts" }],
+      region: [{ name: "EastAfrica_King", score: "1,200 pts" }, { name: "RiftValley_Pro", score: "980 pts" }],
+      national: [{ name: "Kenya_Champ", score: "4,500 pts" }, { name: "Safari_Quizzer", score: "3,800 pts" }],
+      world: [{ name: "Global_Master", score: "12,900 pts" }, { name: "Trivia_God", score: "11,200 pts" }]
+    };
+
+    function init() {
+      updateUI();
+      renderSubjects();
+      renderLeaderboard('county');
+      startSessionClock();
+      attachEvents();
+    }
+
+    function updateUI() {
+      document.getElementById('balance-cash').textContent = state.cash.toFixed(2);
+      document.getElementById('balance-coins').textContent = state.coins;
+      document.getElementById('user-display-name').textContent = `${state.username} (${state.county})`;
+      document.getElementById('user-activity-tag').textContent = `Matches Played: ${state.matchesPlayed} | Level ${Math.floor(state.matchesPlayed / 5) + 1}`;
+    }
+
+    function renderSubjects() {
+      const container = document.getElementById('subjects-container');
+      container.innerHTML = '';
+      state.subjects.forEach((sub, idx) => {
+        const div = document.createElement('div');
+        div.className = `subject-item ${idx === 0 ? 'active' : ''}`;
+        div.innerHTML = `<h5>${sub.name}</h5><p>Starts at ${sub.time}</p>`;
+        container.appendChild(div);
+      });
+    }
+
+    function renderLeaderboard(type) {
+      const container = document.getElementById('leaderboard-content');
+      container.innerHTML = '';
+      leaderboards[type].forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = 'leader-item';
+        div.innerHTML = `<span>#${idx + 1} ${item.name}</span><strong>${item.score}</strong>`;
+        container.appendChild(div);
+      });
+    }
+
+    function startSessionClock() {
+      setInterval(() => {
+        const now = new Date();
+        const nextHour = state.sessionTimes.find(h => h > now.getHours()) || 0;
+        const target = new Date(now);
+        if (nextHour <= now.getHours()) target.setDate(target.getDate() + 1);
+        target.setHours(nextHour, 0, 0, 0);
+
+        const diff = target - now;
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const secs = Math.floor((diff % (1000 * 60)) / 1000);
+        document.getElementById('session-clock').textContent = `00:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+      }, 1000);
+    }
+
+    function startQuiz() {
+      state.currentQ = 0;
+      state.score = 0;
+      document.getElementById('locked-view').classList.add('hidden');
+      document.getElementById('result-view').classList.add('hidden');
+      document.getElementById('quiz-view').classList.remove('hidden');
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      clearInterval(state.timerInterval);
+      state.qTimer = 15;
+      document.getElementById('q-timer').textContent = state.qTimer;
+
+      const q = state.questions[state.currentQ];
+      document.getElementById('q-number').textContent = `Question ${state.currentQ + 1}/${state.questions.length}`;
+      document.getElementById('q-text').textContent = q.q;
+
+      const box = document.getElementById('options-box');
+      box.innerHTML = '';
+      q.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.textContent = opt;
+        btn.onclick = () => answerQuestion(idx);
+        box.appendChild(btn);
+      });
+
+      state.timerInterval = setInterval(() => {
+        state.qTimer--;
+        document.getElementById('q-timer').textContent = state.qTimer;
+        if (state.qTimer <= 0) answerQuestion(-1);
+      }, 1000);
+    }
+
+    function answerQuestion(idx) {
+      clearInterval(state.timerInterval);
+      if (idx === state.questions[state.currentQ].answer) state.score++;
+      state.currentQ++;
+
+      if (state.currentQ < state.questions.length) {
+        loadQuestion();
+      } else {
+        finishQuiz();
+      }
+    }
+
+    function finishQuiz() {
+      document.getElementById('quiz-view').classList.add('hidden');
+      document.getElementById('result-view').classList.remove('hidden');
+      document.getElementById('result-score').textContent = `Score: ${state.score}/${state.questions.length}`;
+
+      state.matchesPlayed++;
+      localStorage.setItem('tc_matches', state.matchesPlayed);
+      if (state.score === state.questions.length) state.cash += 2.0;
+      updateUI();
+    }
+
+    function attachEvents() {
+      document.getElementById('start-quiz-btn').onclick = startQuiz;
+      document.getElementById('return-btn').onclick = () => {
+        document.getElementById('result-view').classList.add('hidden');
+        document.getElementById('locked-view').classList.remove('hidden');
+      };
+
+      // Theme Selector Switcher
+      document.getElementById('theme-selector').onchange = (e) => {
+        document.body.className = e.target.value;
+      };
+
+      // Modals
+      document.getElementById('open-shop-btn').onclick = () => document.getElementById('shop-modal').classList.remove('hidden');
+      document.getElementById('close-shop-btn').onclick = () => document.getElementById('shop-modal').classList.add('hidden');
+      document.getElementById('account-btn').onclick = () => document.getElementById('account-modal').classList.remove('hidden');
+      document.getElementById('close-account-btn').onclick = () => document.getElementById('account-modal').classList.add('hidden');
+
+      // Account Saving
+      document.getElementById('save-account-btn').onclick = () => {
+        const u = document.getElementById('username-input').value.trim();
+        const c = document.getElementById('county-input').value;
+        if (u) { state.username = u; localStorage.setItem('tc_user', u); }
+        state.county = c; localStorage.setItem('tc_county', c);
+        updateUI();
+        document.getElementById('account-modal').classList.add('hidden');
+      };
+
+      // Leaderboard Tabs
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+          e.target.classList.add('active');
+          renderLeaderboard(e.target.dataset.tab);
+        };
+      });
+
+      // M-Pesa Payment Triggers
+      document.addEventListener('click', async (e) => {
+        if (e.target.classList.contains('btn-purchase')) {
+          const packageId = e.target.dataset.package;
+          const phone = prompt("Enter M-Pesa phone number (Format: 2547XXXXXXXX):");
+          if (!phone) return;
+
+          try {
+            const res = await fetch('/api/mpesa-checkout', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ phone, packageId })
+            });
+            const data = await res.json();
+            if (data.success) {
+              alert(`STK Push sent to ${phone}! Complete payment on your phone.`);
+              if (data.coins) state.coins += data.coins;
+              updateUI();
+            } else {
+              alert("Error: " + (data.error || "Checkout failed."));
+            }
+          } catch (err) {
+            alert("Network connection error.");
+          }
+        }
+      });
+
+      // Custom Donation Trigger
+      document.getElementById('custom-donate-btn').onclick = async () => {
+        const amt = prompt("Enter donation amount in KSh:");
+        const phone = prompt("Enter M-Pesa phone number (Format: 2547XXXXXXXX):");
+        if (!amt || !phone) return;
+
+        try {
+          const res = await fetch('/api/mpesa-checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone, packageId: 'custom_donation', customAmount: amt })
+          });
+          const data = await res.json();
+          if (data.success) alert("Thank you for supporting Trivia Clash!");
+        } catch (err) {
+          alert("Network connection error.");
+        }
+      };
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
 </body>
 </html>
