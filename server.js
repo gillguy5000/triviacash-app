@@ -120,6 +120,24 @@ app.post('/api/mpesa-checkout', getMpesaAccessToken, async (req, res) => {
 });
 
 // Fallback Route
+const fs = require('fs');
+
+// API Endpoint to send saved trivia questions to frontend
+app.get('/api/questions', (req, res) => {
+  const questionsPath = path.join(__dirname, 'questions.json');
+  
+  if (fs.existsSync(questionsPath)) {
+    const rawData = fs.readFileSync(questionsPath);
+    const questions = JSON.parse(rawData);
+    res.json(questions);
+  } else {
+    // Return default backup questions if file isn't generated yet
+    res.json([
+      { q: "What is the capital city of Kenya?", options: ["Mombasa", "Kisumu", "Nairobi", "Nakuru"], answer: 2 },
+      { q: "Which planet is known as the Red Planet?", options: ["Venus", "Mars", "Jupiter", "Saturn"], answer: 1 }
+    ]);
+  }
+});
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
