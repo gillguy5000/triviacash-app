@@ -11,21 +11,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Catalog for packages, tournament passes, and donations
 const PACKAGES = {
-  // Coin Store
   'starter': { name: 'Starter Pack (50 Coins)', amount: 200, coins: 50 },
   'pro': { name: 'Pro Pack (150 Coins)', amount: 500, coins: 150 },
   'champion': { name: 'Champion Pack (500 Coins)', amount: 1300, coins: 500 },
-
-  // Tournament Passes
   'weekly_pass': { name: 'Weekly Tournament Pass', amount: 300, coins: 0 },
   'five_month_pass': { name: '5-Month Major Pass', amount: 1200, coins: 100 },
   'yearly_pass': { name: 'Yearly Championship Pass', amount: 2500, coins: 300 },
-
-  // Donation Tier
   'donation_supporter': { name: 'Community Supporter Donation', amount: 250, coins: 25 }
 };
 
-// Middleware to get Safaricom M-Pesa OAuth Access Token
 async function getMpesaAccessToken(req, res, next) {
   const consumerKey = process.env.MPESA_CONSUMER_KEY;
   const consumerSecret = process.env.MPESA_CONSUMER_SECRET;
@@ -49,13 +43,11 @@ async function getMpesaAccessToken(req, res, next) {
   }
 }
 
-// Route: Initiate M-Pesa STK Push
 app.post('/api/mpesa-checkout', getMpesaAccessToken, async (req, res) => {
   try {
     const { phone, packageId, customAmount } = req.body;
     let pkg = PACKAGES[packageId];
 
-    // Handle custom donation amounts
     if (packageId === 'custom_donation') {
       const amt = parseInt(customAmount, 10);
       if (!amt || amt < 50) {
@@ -83,6 +75,10 @@ app.post('/api/mpesa-checkout', getMpesaAccessToken, async (req, res) => {
 
     const shortCode = process.env.MPESA_SHORTCODE || '174379';
     const passkey = process.env.MPESA_PASSKEY;
+    if (!passkey) {
+      return res.status(500).json({ error: 'M-Pesa passkey missing in server config.' });
+    }
+
     const password = Buffer.from(`${shortCode}${passkey}${timestamp}`).toString('base64');
 
     const payload = {
@@ -94,7 +90,7 @@ app.post('/api/mpesa-checkout', getMpesaAccessToken, async (req, res) => {
       PartyA: phone,
       PartyB: shortCode,
       PhoneNumber: phone,
-      CallBackURL: 'https://example.com/api/mpesa-callback',
+      CallBackURL: process.env.MPESA_CALLBACK_URL || 'https://example.com/api/mpesa-callback',
       AccountReference: 'TriviaClash',
       TransactionDesc: `Purchase ${pkg.name}`
     };
@@ -119,25 +115,28 @@ app.post('/api/mpesa-checkout', getMpesaAccessToken, async (req, res) => {
   }
 });
 
-// Fallback Route
 const fs = require('fs');
 
-// API Endpoint to send saved trivia questions to frontend
 app.get('/api/questions', (req, res) => {
   const questionsPath = path.join(__dirname, 'questions.json');
-  
+
   if (fs.existsSync(questionsPath)) {
     const rawData = fs.readFileSync(questionsPath);
     const questions = JSON.parse(rawData);
     res.json(questions);
   } else {
-    // Return default backup questions if file isn't generated yet
     res.json([
-      { q: "What is the capital city of Kenya?", options: ["Mombasa", "Kisumu", "Nairobi", "Nakuru"], answer: 2 },
-      { q: "Which planet is known as the Red Planet?", options: ["Venus", "Mars", "Jupiter", "Saturn"], answer: 1 }
+      { q: 'What is the capital city of Kenya?', options: ['Mombasa', 'Kisumu', 'Nairobi', 'Nakuru'], answer: 2 },
+      { q: 'Which planet is known as the Red Planet?', options: ['Venus', 'Mars', 'Jupiter', 'Saturn'], answer: 1 }
     ]);
   }
 });
+
+app.post('/api/mpesa-callback', (req, res) => {
+  console.log('M-Pesa callback received:', req.body);
+  res.status(200).json({ success: true, message: 'Callback received' });
+});
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
