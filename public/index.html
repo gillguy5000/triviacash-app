@@ -187,6 +187,16 @@
           <span id="q-number" style="font-size:0.8rem;">Question 1/3</span>
           <div class="timer-ring" id="q-timer">15</div>
         </div>
+
+        <div style="display:flex; gap:8px; margin:10px 0;">
+          <button id="buy-hint-5050" class="btn btn-secondary" style="flex:1; font-size:0.75rem; padding:6px;">
+            💡 50/50 (🪙 20 Coins)
+          </button>
+          <button id="buy-hint-time" class="btn btn-secondary" style="flex:1; font-size:0.75rem; padding:6px;">
+            ⏱️ +10s (🪙 15 Coins)
+          </button>
+        </div>
+
         <h4 id="q-text" style="margin:12px 0;">Loading...</h4>
         <div class="options-grid" id="options-box"></div>
       </div>
@@ -251,6 +261,7 @@
       username: localStorage.getItem('tc_user') || 'Player_Guest',
       county: localStorage.getItem('tc_county') || 'Nairobi',
       matchesPlayed: parseInt(localStorage.getItem('tc_matches') || '0', 10),
+      selectedSubject: 'Science & Tech',
       sessionTimes: [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22],
       subjects: [
         { name: "Science & Tech", time: "00:00" }, { name: "World History", time: "02:00" },
@@ -296,10 +307,18 @@
     function renderSubjects() {
       const container = document.getElementById('subjects-container');
       container.innerHTML = '';
-      state.subjects.forEach((sub, idx) => {
+      state.subjects.forEach((sub) => {
         const div = document.createElement('div');
-        div.className = `subject-item ${idx === 0 ? 'active' : ''}`;
+        const isActive = state.selectedSubject === sub.name;
+        div.className = `subject-item ${isActive ? 'active' : ''}`;
         div.innerHTML = `<h5>${sub.name}</h5><p>Starts at ${sub.time}</p>`;
+
+        div.onclick = () => {
+          state.selectedSubject = sub.name;
+          renderSubjects();
+          alert(`Selected Session: ${sub.name}`);
+        };
+
         container.appendChild(div);
       });
     }
@@ -395,18 +414,15 @@
         document.getElementById('locked-view').classList.remove('hidden');
       };
 
-      // Theme Selector Switcher
       document.getElementById('theme-selector').onchange = (e) => {
         document.body.className = e.target.value;
       };
 
-      // Modals
       document.getElementById('open-shop-btn').onclick = () => document.getElementById('shop-modal').classList.remove('hidden');
       document.getElementById('close-shop-btn').onclick = () => document.getElementById('shop-modal').classList.add('hidden');
       document.getElementById('account-btn').onclick = () => document.getElementById('account-modal').classList.remove('hidden');
       document.getElementById('close-account-btn').onclick = () => document.getElementById('account-modal').classList.add('hidden');
 
-      // Account Saving
       document.getElementById('save-account-btn').onclick = () => {
         const u = document.getElementById('username-input').value.trim();
         const c = document.getElementById('county-input').value;
@@ -416,7 +432,6 @@
         document.getElementById('account-modal').classList.add('hidden');
       };
 
-      // Leaderboard Tabs
       document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.onclick = (e) => {
           document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -425,7 +440,6 @@
         };
       });
 
-      // M-Pesa Payment Triggers
       document.addEventListener('click', async (e) => {
         if (e.target.classList.contains('btn-purchase')) {
           const packageId = e.target.dataset.package;
@@ -451,28 +465,39 @@
           }
         }
       });
-      <!-- Inside the quiz view card in public/index.html -->
-<div id="quiz-view" class="hidden">
-  <div style="display:flex; justify-content:space-between; align-items:center;">
-    <span id="q-number" style="font-size:0.8rem;">Question 1/3</span>
-    <div class="timer-ring" id="q-timer">15</div>
-  </div>
 
-  <!-- Hints Shop Bar -->
-  <div style="display:flex; gap:8px; margin:10px 0;">
-    <button id="buy-hint-5050" class="btn btn-secondary" style="flex:1; font-size:0.75rem; padding:6px;">
-      💡 50/50 (🪙 20 Coins)
-    </button>
-    <button id="buy-hint-time" class="btn btn-secondary" style="flex:1; font-size:0.75rem; padding:6px;">
-      ⏱️ +10s (🪙 15 Coins)
-    </button>
-  </div>
+      document.getElementById('buy-hint-5050').onclick = () => {
+        if (state.coins < 20) {
+          alert("Not enough coins! Buy more coins in the Store.");
+          return;
+        }
+        state.coins -= 20;
+        updateUI();
 
-  <h4 id="q-text" style="margin:12px 0;">Loading...</h4>
-  <div class="options-grid" id="options-box"></div>
-</div>
+        const currentQ = state.questions[state.currentQ];
+        const buttons = document.querySelectorAll('#options-box .option-btn');
+        let removed = 0;
 
-      // Custom Donation Trigger
+        buttons.forEach((btn, idx) => {
+          if (idx !== currentQ.answer && removed < 2) {
+            btn.style.opacity = '0.3';
+            btn.disabled = true;
+            removed++;
+          }
+        });
+      };
+
+      document.getElementById('buy-hint-time').onclick = () => {
+        if (state.coins < 15) {
+          alert("Not enough coins! Buy more coins in the Store.");
+          return;
+        }
+        state.coins -= 15;
+        state.qTimer += 10;
+        document.getElementById('q-timer').textContent = state.qTimer;
+        updateUI();
+      };
+
       document.getElementById('custom-donate-btn').onclick = async () => {
         const amt = prompt("Enter donation amount in KSh:");
         const phone = prompt("Enter M-Pesa phone number (Format: 2547XXXXXXXX):");
