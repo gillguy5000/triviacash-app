@@ -451,6 +451,26 @@
           }
         }
       });
+      <!-- Inside the quiz view card in public/index.html -->
+<div id="quiz-view" class="hidden">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <span id="q-number" style="font-size:0.8rem;">Question 1/3</span>
+    <div class="timer-ring" id="q-timer">15</div>
+  </div>
+
+  <!-- Hints Shop Bar -->
+  <div style="display:flex; gap:8px; margin:10px 0;">
+    <button id="buy-hint-5050" class="btn btn-secondary" style="flex:1; font-size:0.75rem; padding:6px;">
+      💡 50/50 (🪙 20 Coins)
+    </button>
+    <button id="buy-hint-time" class="btn btn-secondary" style="flex:1; font-size:0.75rem; padding:6px;">
+      ⏱️ +10s (🪙 15 Coins)
+    </button>
+  </div>
+
+  <h4 id="q-text" style="margin:12px 0;">Loading...</h4>
+  <div class="options-grid" id="options-box"></div>
+</div>
 
       // Custom Donation Trigger
       document.getElementById('custom-donate-btn').onclick = async () => {
